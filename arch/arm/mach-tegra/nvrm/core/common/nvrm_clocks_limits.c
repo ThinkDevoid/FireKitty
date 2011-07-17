@@ -50,6 +50,12 @@
   #define MAX_GPCLOCK (400000)
 #endif
 
+// System Overclock
+#if defined(OC_AVPCLOCK)
+  #define MAX_AVPCLOCK (266400)
+#endif
+
+
 // Extended clock limits IDs
 typedef enum
 {
@@ -147,6 +153,11 @@ NvRmPrivClockLimitsInit(NvRmDeviceHandle hRmDevice)
     // Combine AVP/System clock absolute limit with scaling V/F ladder upper
     // boundary, and set default clock range for all present modules the same
     // as for AVP/System clock
+
+
+    #if defined(OC_AVPCLOCK)
+        AvpMaxKHz = MAX_AVPCLOCK;
+    #else
     AvpMaxKHz = pSKUedLimits->AvpMaxKHz;
     for (i = 0; i < pShmoo->ScaledLimitsListSize; i++)
     {
@@ -157,6 +168,7 @@ NvRmPrivClockLimitsInit(NvRmDeviceHandle hRmDevice)
             break;
         }
     }
+    #endif
 
     for (i = 0; i < NvRmPrivModuleID_Num; i++)
     {
@@ -220,9 +232,13 @@ NvRmPrivClockLimitsInit(NvRmDeviceHandle hRmDevice)
     // Set VDE upper clock boundary with combined Absolute/Scaled limit (on
     // AP15/Ap16 VDE clock derived from the system bus, and VDE maximum limit
     // must be the same as AVP/System).
+    #if defined(OC_AVPCLOCK)
+        VdeMaxKHz = MAX_AVPCLOCK;
+    #else
     VdeMaxKHz = pSKUedLimits->VdeMaxKHz;
     VdeMaxKHz = NV_MIN(
         VdeMaxKHz, s_ClockRangeLimits[NvRmModuleID_Vde].MaxKHz);
+    #endif
     if ((hRmDevice->ChipId.Id == 0x15) || (hRmDevice->ChipId.Id == 0x16))
     {
         NV_ASSERT(VdeMaxKHz == AvpMaxKHz);
