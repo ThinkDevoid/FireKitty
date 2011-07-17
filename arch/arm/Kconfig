@@ -1472,6 +1472,21 @@ source "drivers/cpuidle/Kconfig"
 
 endmenu
 
+menu "Overclocking"
+
+if ARCH_HAS_CPUFREQ
+
+config OC_GPCLOCK
+        bool "Overclock Graphics Card"
+        depends on CPU_FREQ
+        default y
+        help
+          This enabled a GPU Clock Overclock from 300mhz to 400mhz.
+
+endif
+
+endmenu
+
 menu "Floating point emulation"
 
 comment "At least one emulation must be selected"

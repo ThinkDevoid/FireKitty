@@ -40,10 +40,15 @@
 #include "nvrm_memmgr.h"
 #include "ap15/ap15rm_private.h"
 #include "ap15/project_relocation_table.h"
-
+#include <linux/kernel.h>
 
 #define NvRmPrivGetStepMV(hRmDevice, step) \
          (s_ChipFlavor.pSocShmoo->ShmooVoltages[(step)])
+
+// Graphics Overclock
+#if defined(OC_GPCLOCK)
+  #define MAX_GPCLOCK (400000)
+#endif
 
 // Extended clock limits IDs
 typedef enum
@@ -260,9 +265,14 @@ NvRmPrivClockLimitsInit(NvRmDeviceHandle hRmDevice)
         NVRM_SDRAM_MIN_KHZ;
 
     // Set 3D upper clock boundary with combined Absolute/Scaled limit.
-    TDMaxKHz = pSKUedLimits->TDMaxKHz;
-    TDMaxKHz = NV_MIN(
-        TDMaxKHz, s_ClockRangeLimits[NvRmModuleID_3D].MaxKHz);
+    #if defined(OC_GPCLOCK)
+      TDMaxKHz = MAX_GPCLOCK;
+    #else
+      TDMaxKHz = pSKUedLimits->TDMaxKHz;
+      TDMaxKHz = NV_MIN(
+          TDMaxKHz, s_ClockRangeLimits[NvRmModuleID_3D].MaxKHz);
+    #endif
+
     s_ClockRangeLimits[NvRmModuleID_3D].MaxKHz = TDMaxKHz;
 
     // Set Display upper clock boundary with combined Absolute/Scaled limit.
